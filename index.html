@@ -9,11 +9,15 @@
 <body>
     <div class="quiz-container">
         <h1>Quiz Questions</h1>
+        <div id="answer-status"></div>
         <form id="quiz-form">
             <!-- Questions and options will be generated using JavaScript -->
         </form>
-        <button id="next-button">Next</button>
-        <button id="submit-button">Submit Answers</button>
+        <div class="buttons">
+            <button id="prev-button" class="nav-button">Previous</button>
+            <button id="next-button" class="nav-button">Next</button>
+        </div>
+        <button id="submit-button" class="nav-button">Submit Answers</button>
     </div>
     <div class="result-container">
         <h1>Your Score</h1>

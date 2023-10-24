@@ -1,5 +1,5 @@
 const questions = [
-    // Your questions and answers here...
+    // Your array of questions and answers here
     {
         question: "1. Which of these is not a step in natural selection?",
         options: ["a. variation", "b. underpopulation", "c. struggle for existence", "d. survival of the fittest"],
@@ -603,22 +603,26 @@ const questions = [
     }
     
 
+
 ];
 
 const quizForm = document.getElementById("quiz-form");
 const nextButton = document.getElementById("next-button");
+const prevButton = document.getElementById("prev-button");
 const submitButton = document.getElementById("submit-button");
 const scoreDisplay = document.getElementById("score");
+const correctAnswerContainer = document.getElementById("correct-answer-container");
 
 let currentQuestion = 0;
 let score = 0;
+let userAnswers = new Array(questions.length).fill(null);
 
 function loadQuestion() {
     const question = questions[currentQuestion];
     if (question) {
         const optionsHTML = question.options.map((option, index) => `
             <label>
-                <input type="radio" name="answer" value="${option}" required>
+                <input type="radio" name="answer" value="${index}" required>
                 ${option}
             </label>
         `).join('');
@@ -627,9 +631,28 @@ function loadQuestion() {
             <h2>${question.question}</h2>
             ${optionsHTML}
         `;
+
+        if (userAnswers[currentQuestion] !== null) {
+            const selectedOption = userAnswers[currentQuestion];
+            const selectedAnswer = question.options[selectedOption].trim().toLowerCase();
+            if (selectedAnswer === question.answer.trim().toLowerCase()) {
+                correctAnswerContainer.innerHTML = "Your answer is correct!";
+                correctAnswerContainer.classList.add("correct");
+            } else {
+                correctAnswerContainer.innerHTML = `Your answer is wrong. The correct answer is: ${question.answer}`;
+                correctAnswerContainer.classList.add("wrong");
+            }
+        } else {
+            correctAnswerContainer.innerHTML = "";
+            correctAnswerContainer.classList.remove("correct", "wrong");
+        }
+
+        nextButton.style.display = "block";
+        prevButton.style.display = "block";
     } else {
         quizForm.innerHTML = "<h2>Quiz completed. Submit to see your score.</h2>";
         nextButton.style.display = "none";
+        prevButton.style.display = "none";
         submitButton.style.display = "block";
     }
 }
@@ -637,34 +660,34 @@ function loadQuestion() {
 function checkAnswer() {
     const selectedAnswer = document.querySelector('input[name="answer"]:checked');
     if (selectedAnswer) {
-        if (selectedAnswer.value === questions[currentQuestion].answer) {
-            score++;
-        }
-        selectedAnswer.checked = false;
-        currentQuestion++;
-        if (currentQuestion < questions.length) {
-            loadQuestion();
-        } else {
-            nextButton.style.display = "none";
-            submitButton.style.display = "block";
-        }
+        userAnswers[currentQuestion] = parseInt(selectedAnswer.value);
     }
 }
 
-quizForm.addEventListener("submit", (e) => {
-    e.preventDefault();
+function nextQuestion() {
     checkAnswer();
-});
+    currentQuestion++;
+    loadQuestion();
+}
 
-nextButton.addEventListener("click", () => {
+function prevQuestion() {
     checkAnswer();
-});
+    currentQuestion--;
+    loadQuestion();
+}
+
+nextButton.addEventListener("click", nextQuestion);
+prevButton.addEventListener("click", prevQuestion);
 
 submitButton.addEventListener("click", () => {
-    scoreDisplay.textContent = `${score} / ${questions.length}`;
+    checkAnswer();
+    score = userAnswers.filter((userAnswer, index) => userAnswer === questions[index].options.indexOf(questions[index].answer)).length;
+    scoreDisplay.textContent = `Your Score: ${score} / ${questions.length}`;
     scoreDisplay.style.display = "block";
     quizForm.style.display = "none";
     submitButton.style.display = "none";
+    nextButton.style.display = "none";
+    prevButton.style.display = "none";
 });
 
 loadQuestion();
