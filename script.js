@@ -1,5 +1,5 @@
 const questions = [
-    // Your array of questions and answers here
+    // Your questions and answers here
     {
         question: "1. Which of these is not a step in natural selection?",
         options: ["a. variation", "b. underpopulation", "c. struggle for existence", "d. survival of the fittest"],
@@ -606,23 +606,32 @@ const questions = [
 
 ];
 
+// Shuffle the questions array to randomize the order
+shuffleArray(questions);
+
 const quizForm = document.getElementById("quiz-form");
-const nextButton = document.getElementById("next-button");
 const prevButton = document.getElementById("prev-button");
+const nextButton = document.getElementById("next-button");
 const submitButton = document.getElementById("submit-button");
 const scoreDisplay = document.getElementById("score");
-const correctAnswerContainer = document.getElementById("correct-answer-container");
+const answerStatus = document.getElementById("answer-status");
 
 let currentQuestion = 0;
 let score = 0;
-let userAnswers = new Array(questions.length).fill(null);
+
+function shuffleArray(array) {
+    for (let i = array.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [array[i], array[j]] = [array[j], array[i]];
+    }
+}
 
 function loadQuestion() {
     const question = questions[currentQuestion];
     if (question) {
         const optionsHTML = question.options.map((option, index) => `
             <label>
-                <input type="radio" name="answer" value="${index}" required>
+                <input type="radio" name="answer" value="${option}" required>
                 ${option}
             </label>
         `).join('');
@@ -631,28 +640,8 @@ function loadQuestion() {
             <h2>${question.question}</h2>
             ${optionsHTML}
         `;
-
-        if (userAnswers[currentQuestion] !== null) {
-            const selectedOption = userAnswers[currentQuestion];
-            const selectedAnswer = question.options[selectedOption].trim().toLowerCase();
-            if (selectedAnswer === question.answer.trim().toLowerCase()) {
-                correctAnswerContainer.innerHTML = "Your answer is correct!";
-                correctAnswerContainer.classList.add("correct");
-            } else {
-                correctAnswerContainer.innerHTML = `Your answer is wrong. The correct answer is: ${question.answer}`;
-                correctAnswerContainer.classList.add("wrong");
-            }
-        } else {
-            correctAnswerContainer.innerHTML = "";
-            correctAnswerContainer.classList.remove("correct", "wrong");
-        }
-
-        nextButton.style.display = "block";
-        prevButton.style.display = "block";
     } else {
         quizForm.innerHTML = "<h2>Quiz completed. Submit to see your score.</h2>";
-        nextButton.style.display = "none";
-        prevButton.style.display = "none";
         submitButton.style.display = "block";
     }
 }
@@ -660,34 +649,54 @@ function loadQuestion() {
 function checkAnswer() {
     const selectedAnswer = document.querySelector('input[name="answer"]:checked');
     if (selectedAnswer) {
-        userAnswers[currentQuestion] = parseInt(selectedAnswer.value);
+        if (selectedAnswer.value === questions[currentQuestion].answer) {
+            score++;
+            answerStatus.innerHTML = '<span class="correct-answer">Correct</span>';
+        } else {
+            answerStatus.innerHTML = '<span class="wrong-answer">Wrong</span>';
+        }
+        currentQuestion++;
+        selectedAnswer.checked = false;
+        loadQuestion();
     }
 }
 
-function nextQuestion() {
-    checkAnswer();
-    currentQuestion++;
-    loadQuestion();
+function showPreviousQuestion() {
+    if (currentQuestion > 0) {
+        currentQuestion--;
+        loadQuestion();
+        answerStatus.innerHTML = '';
+    }
 }
 
-function prevQuestion() {
-    checkAnswer();
-    currentQuestion--;
-    loadQuestion();
+function showNextQuestion() {
+    if (currentQuestion < questions.length - 1) {
+        currentQuestion++;
+        loadQuestion();
+        answerStatus.innerHTML = '';
+    }
 }
 
-nextButton.addEventListener("click", nextQuestion);
-prevButton.addEventListener("click", prevQuestion);
+quizForm.addEventListener("submit", (e) => {
+    e.preventDefault();
+    checkAnswer();
+});
+
+prevButton.addEventListener("click", () => {
+    showPreviousQuestion();
+});
+
+nextButton.addEventListener("click", () => {
+    showNextQuestion();
+});
 
 submitButton.addEventListener("click", () => {
-    checkAnswer();
-    score = userAnswers.filter((userAnswer, index) => userAnswer === questions[index].options.indexOf(questions[index].answer)).length;
-    scoreDisplay.textContent = `Your Score: ${score} / ${questions.length}`;
+    scoreDisplay.textContent = `${score} / ${questions.length}`;
     scoreDisplay.style.display = "block";
     quizForm.style.display = "none";
-    submitButton.style.display = "none";
-    nextButton.style.display = "none";
     prevButton.style.display = "none";
+    nextButton.style.display = "none";
+    submitButton.style.display = "none";
 });
 
 loadQuestion();
